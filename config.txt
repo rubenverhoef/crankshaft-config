@@ -85,3 +85,11 @@ dtparam=i2s=on
 
 # I2C Bus
 dtoverlay=i2c_arm=on
+
+# Overclocking Setup
+dtoverlay=sdtweak,overclock_50=80
+
+# Initramfs params for flashsystem
+initramfs initrd.img followkernel
+ramfsfile=initrd.img
+ramfsaddr=-1

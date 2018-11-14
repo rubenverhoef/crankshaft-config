@@ -106,14 +106,14 @@ WIFI_PSK="1+3TRuben"
 # Hotspot (if enabled the wifi client is disabled and a hotspot is opened)
 # If your SSID or password contains special chars or spaces make sure using quotation marks ="SSID" / ="password"
 ENABLE_HOTSPOT=1
-HOTSPOT_PSK=FordRuben
+HOTSPOT_PSK="FordRuben"
 
 ### RPi Camera Module ###
 # Overlay settings
-RPICAM_X=148
-RPICAM_Y=0
-RPICAM_WIDTH=604
-RPICAM_HEIGTH=420
+RPICAM_X=100
+RPICAM_Y=52
+RPICAM_WIDTH=590
+RPICAM_HEIGTH=366
 RPICAM_HFLIP=0
 RPICAM_VFLIP=0
 RPICAM_ROTATION=0
@@ -144,6 +144,10 @@ ENABLE_BLUETOOTH=1
 ENABLE_PAIRABLE=1
 # Use external adapter not builtin
 EXTERNAL_BLUETOOTH=0
+
+# Skip usb flash and usb detect for debug mode and dev mode - This overrides ALLOW_USB_FLASH!
+# CSSTORAGE will still be searched for and mounted.
+SKIP_USB_DETECT=1
 
 # System updates
 ALLOW_USB_FLASH=1
