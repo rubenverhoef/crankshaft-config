@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source /boot/crankshaft/crankshaft_env.sh
+
+gpio pwm 26 $(($1^$BR_MAX))
