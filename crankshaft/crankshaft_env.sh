@@ -34,7 +34,7 @@ REARCAM_PIN=0
 # openauto won't be started automatically
 DEV_MODE=0
 # Start openauto in dev mode if enabled
-DEV_MODE_APP=0
+DEV_MODE_APP=1
 
 ### Debugging ###
 # Start Crankshaft in debug mode to get network, shell and ssh access
