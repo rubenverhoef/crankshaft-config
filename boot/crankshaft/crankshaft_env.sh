@@ -29,6 +29,12 @@ ANDROID_PIN=0
 # To disable set to 0
 REARCAM_PIN=0
 
+# GPIO Trigger for Day/Night
+# GPIO wich triggers Day (open gpio)/Night (closed to gnd) of GUI
+# To disable set to 0
+# If enabled it overrides lightsensor!
+DAYNIGHT_PIN=0
+
 ### Maintenance / Initial Setup ###
 # Start Crankshaft in dev mode to get network, shell and ssh access
 # openauto won't be started automatically
@@ -55,6 +61,8 @@ BRIGHTNESS_FILE=/sys/class/backlight/rpi_backlight/brightness
 BR_MIN=0
 BR_MAX=1023
 BR_STEP=103
+BR_DAY=1023
+BR_NIGHT=0
 
 # Custom brightness control
 # Note: this command is called after every brightness change - can slow down for example the brightness
@@ -82,9 +90,11 @@ STARTUP_VOL_MAX=100
 
 ###  Power Mgmt Related Stuff ###
 # Timeout display after disconnect or after boot without connected device
-DISCONNECTION_SCREEN_POWEROFF_SECS=120
+DISCONNECTION_SCREEN_POWEROFF_SECS=30
 # Disable Timer
-DISCONNECTION_SCREEN_POWEROFF_DISABLE=1
+DISCONNECTION_SCREEN_POWEROFF_DISABLE=0
+# Use screensaver (bg+clock) instead of display off
+SCREEN_POWEROFF_OVERRIDE=1
 
 # Timeout shutdown after disconnect or after boot without connected device
 #
@@ -98,15 +108,21 @@ DISCONNECTION_POWEROFF_DISABLE=1
 # Your country code like EN,DE,FR,UK etc.
 WIFI_COUNTRY=NL
 
-# Wifi client mode - Only used in dev mode
+# Wifi client mode
 # If your SSID or password contains special chars or spaces make sure using quotation marks ="SSID" / ="password"
-WIFI_SSID="OnePlus 3T Ruben"
-WIFI_PSK="1+3TRuben"
+WIFI_SSID="Het Zaantje"
+WIFI_PSK=""
+# Optinal 2nd config to access to phone's hotspot
+# Note: if second config is configured system will use first connectable wifi during boot
+WIFI2_SSID="OnePlus 3T Ruben"
+WIFI2_PSK="1+3TRuben"
+
+# Force recreate wpa_supplicant.conf during boot after wifi credentials have changed by user (default 0 | update 1)
+WIFI_UPDATE_CONFIG=0
 
 # Hotspot (if enabled the wifi client is disabled and a hotspot is opened)
-# If your SSID or password contains special chars or spaces make sure using quotation marks ="SSID" / ="password"
+# Hotspot has now a default password (1234567890) -> changeable in /etc/hostapd/hostapd.conf if really needed!
 ENABLE_HOTSPOT=1
-HOTSPOT_PSK="FordRuben"
 
 ### RPi Camera Module ###
 # Overlay settings
@@ -135,7 +151,7 @@ RTC_NIGHT_START=17
 # To disable set to 0
 IGNITION_PIN=13
 # Time to wait until shutting down (seconds)
-IGNITION_DELAY=30
+IGNITION_DELAY=15
 
 # Enable experimental bluetooth stuff
 # don't use - only prepared for further releases!
@@ -145,9 +161,23 @@ ENABLE_PAIRABLE=1
 # Use external adapter not builtin
 EXTERNAL_BLUETOOTH=0
 
-# Skip usb flash and usb detect for debug mode and dev mode - This overrides ALLOW_USB_FLASH!
-# CSSTORAGE will still be searched for and mounted.
-SKIP_USB_DETECT=1
-
 # System updates
 ALLOW_USB_FLASH=1
+
+# Auto brightness control based on tsl2561 light sensor
+# Check interval sensor 5,10,15,20,25,30
+TSL2561_CHECK_INTERVAL=10
+# Switch to night on this level or lower (0 = disabled / 1-5)
+TSL2561_DAYNIGHT_ON_STEP=2
+# Switch levels for brightness sensor in lux
+LUX_LEVEL_1=5
+LUX_LEVEL_2=20
+LUX_LEVEL_3=100
+LUX_LEVEL_4=200
+LUX_LEVEL_5=500
+# Set this display brightness by switch levels
+DISP_BRIGHTNESS_1=30
+DISP_BRIGHTNESS_2=90
+DISP_BRIGHTNESS_3=150
+DISP_BRIGHTNESS_4=210
+DISP_BRIGHTNESS_5=255

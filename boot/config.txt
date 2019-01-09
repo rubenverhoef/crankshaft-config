@@ -56,19 +56,6 @@ hdmi_drive=1
 # Custom power settings
 max_usb_current=1
 
-# Disable the PWR LED.
-dtparam=pwr_led_trigger=none
-dtparam=pwr_led_activelow=off
-
-# Disable Rainbow splash
-disable_splash=1
-
-# GPU Mem
-gpu_mem=256
-
-# Overscan fix
-overscan_scale=1
-
 # CAN MCP2515
 #dtoverlay=mcp2515-can0,oscillator=8000000,interrupt=25
 #dtoverlay=spi-bcm2835-overlay
@@ -83,11 +70,24 @@ dtoverlay=i2c-rtc,ds3231
 dtoverlay=audioinjector-wm8731-audio
 dtparam=i2s=on
 
-# I2C Bus
-dtoverlay=i2c_arm=on
+# Overscan fix
+overscan_scale=1
+
+# Disable Rainbow splash
+disable_splash=1
+
+# Disable the PWR LED.
+dtparam=pwr_led_trigger=none
+dtparam=pwr_led_activelow=off
+
+# GPU Mem
+gpu_mem=256
 
 # Overclocking Setup
 dtoverlay=sdtweak,overclock_50=80
+
+# I2C Bus
+dtoverlay=i2c_arm=on
 
 # Initramfs params for flashsystem
 initramfs initrd.img followkernel

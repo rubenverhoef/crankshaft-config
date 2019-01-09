@@ -4,20 +4,17 @@
 # by default this does nothing
 
 # PWM backlight init
-sudo /usr/bin/gpio -g mode 12 pwm
-
-# LINBus Buttons
-sudo python /boot/crankshaft/custom/linbus.py &
+gpio -g mode 12 pwm
+gpio -g mode 4 in
 
 # RearCam
-sudo /usr/bin/gpio -g mode 4 in
-sudo /usr/bin/gpio -g mode 4 up
-while true; do
-    REARCAM_GPIO=`gpio -g read 4`
-    if [ $REARCAM_GPIO -ne 1 ] ; then
-        (cd /boot/crankshaft/custom/rear_cam && ./rear_cam &)
-    else
-        killall rear_cam
-    fi
-    sleep 1
+while true
+do
+gpio -g wfi 4 both
+TRIGGER=`gpio -g read 4`
+if [ $TRIGGER -ne 1 ] ; then
+    (cd /boot/crankshaft/custom/cam_overlay && ./cam_overlay.bin -d /dev/v4l/by-id/usb-fushicai_usbtv007_300000000002-video-index0 &)
+elif [ $TRIGGER -ne 0 ] ; then
+    killall cam_overlay.bin
+fi
 done
