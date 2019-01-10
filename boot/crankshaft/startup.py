@@ -17,7 +17,7 @@ def sw_decode(messages):
     """ decoder for Steering Wheel messages """
     d = messages[0].data # only operate on a single message
     d = d[2:] # chop off mode and PID bytes
-    v = d & 0x00010  # helper function for converting byte arrays to ints
+    v = d & 0x000010  # helper function for converting byte arrays to ints
     return v
 
 sw = OBDCommand("Steering Wheel",
