@@ -7,6 +7,9 @@
 gpio -g mode 12 pwm
 gpio -g mode 4 in
 
+# OBD connection for Steering Wheel and other keys
+# sudo /usr/bin/python3 ./custom/obd-keys.py &
+
 # RearCam
 while true
 do

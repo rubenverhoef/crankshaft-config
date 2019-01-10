@@ -1,3 +1,10 @@
 [submodule "boot/crankshaft/custom/obd"]
 	path = boot/crankshaft/custom/obd
 	url = https://github.com/brendan-w/python-OBD.git
+[submodule ".\\boot\\crankshaft\\custom\\pint"]
+	path = .\\boot\\crankshaft\\custom\\pint
+	url = https://github.com/hgrecco/pint
+	
+[submodule ".\\boot\\crankshaft\\custom\\keyboard"]
+	path = .\\boot\\crankshaft\\custom\\keyboard
+	url = https://github.com/boppreh/keyboard
