@@ -7,6 +7,3 @@
 [submodule "boot/crankshaft/custom/keyboard"]
 	path = boot/crankshaft/custom/keyboard
 	url = https://github.com/boppreh/keyboard.git
-[submodule "boot/crankshaft/custom/bitarray"]
-	path = boot/crankshaft/custom/bitarray
-	url = https://github.com/ilanschnell/bitarray.git
