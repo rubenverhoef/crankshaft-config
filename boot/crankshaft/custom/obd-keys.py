@@ -37,6 +37,9 @@ class Button:
         keyboard.release(self.button)
 
 # 22833C1 response: 62833C00
+swCMD     = b"22833C"
+swHeader  = b'0007A5'
+swBytes   = 1
 swBase    = 0x62833C00
 # swVolUp   = Button((0x62833C80 ^ swBase), False, "H")
 # swVolDown = Button((0x62833C40 ^ swBase), False, "H")
@@ -49,12 +52,12 @@ swButtons   = [swVoice, swNext, swPrev, swM]
 
 sw = OBDCommand("Steering Wheel",
                "Decode SW Commands",
-               b"22833C",
-               4,
+               swCMD,
+               (3 + swBytes),
                d.drop,
                ECU.ALL,
                True,
-               b'0007A5')
+               swHeader)
 
 def sw_clb(data):
     if(data.is_null): # Something to test data before using it..
@@ -73,6 +76,9 @@ def sw_clb(data):
     return
 
 # 2280511 response: 62805100000000
+keyCMD     = b"228051"
+keyHeader  = b'0007A5'
+keyBytes   = 4
 keyBase    = 0x62805100000000
 key0       = Button((0x62805100000400 ^ keyBase), False, "0")           # Number 0
 key1       = Button((0x62805100000800 ^ keyBase), False, "1")           # Number 1
@@ -115,12 +121,12 @@ keyButtons  = [key0, key1, key2, key3, key4, key5, key6, key7, key8, key9,
 
 key = OBDCommand("Radio Keys",
                "Decode Radio Keys",
-               b"228051",
-               7,
+               keyCMD,
+               (3 + keyBytes),
                d.drop,
                ECU.ALL,
                True,
-               b'0007A5')
+               keyHeader)
 
 def key_clb(data):
     if(data.is_null): # Something to test data before using it..
