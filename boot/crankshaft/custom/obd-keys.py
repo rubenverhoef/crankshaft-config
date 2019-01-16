@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os, sys, math, time
+from subprocess import call 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "keyboard"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "obd"))
@@ -14,11 +15,38 @@ from obd.protocols import ECU
 from obd.utils import bytes_to_int
 import obd.decoders as d
 
+class OBDStruct:
+    def __init__(self, bitSelect, isPressing, button):
+        self.bitSelect  = bitSelect
+        self.isPressing = False
+        self.button     = button
+
+    def pressButton(self):
+        keyboard.press(self.button)
+
+    def releaseButton(self):
+        keyboard.release(self.button)
+
+    def revCamOn(self)
+        # (cd /boot/crankshaft/custom/cam_overlay && ./cam_overlay.bin -d /dev/v4l/by-id/usb-fushicai_usbtv007_300000000002-video-index0 &)
+        call(["/boot/crankshaft/custom/cam_overlay/cam_overlay.bin", "-d", "/dev/v4l/by-id/usb-fushicai_usbtv007_300000000002-video-index0", "&"])
+
+    def revCamOff(self)
+        call(["killall", "cam_overlay.bin"])
+
+    def ModeNight(self)
+        call(["csmt", "state", "night"])
+        return
+
+    def ModeDay(self)
+        call(["csmt", "state", "day"])
+        return
+
 revCMD      = b"22833C"
 revHeader   = b'0007A5' # ?? need to check
 revBytes    = 2
 revBase     = 0x623B540000
-revGear     = (0x623B540001 ^ revBase)
+revGear     = OBDStruct((0x623B540001 ^ revBase), False, None)
 
 rev = OBDCommand("Reverse Gear",
                "Decode Reverse Gear Command",
@@ -33,15 +61,22 @@ def rev_clb(data):
     if(data.is_null): # Something to test data before using it..
         return
     data = bytes_to_int(data.messages[0].data[3:])
+    if(revGear.bitSelect & data):
+        if(revGear.isPressing is False):
+            revGear.isPressing = True
+            revGear.revCamOn()
+    elif(revGear.isPressing is True):
+        revGear.isPressing = False
+        revGear.revCamOff()
     return
 
 lightCMD    = b"227151"
 lightHeader = b'0007A5' # ?? need to check
 lightBytes  = 2
 lightBase   = 0x6271510000
-lightBeam   = (0x6271510008 ^ lightBase)
-lightBeam1  = (0x6271510010 ^ lightBase)
-lightBeam2  = (0x6271510040 ^ lightBase)
+lightBeam   = OBDStruct((0x6271510008 ^ lightBase), False, None) # ?? need to check
+# lightBeam1  = (0x6271510010 ^ lightBase)
+# lightBeam2  = (0x6271510040 ^ lightBase)
 # HAND_BRAKE  = 0
 
 light = OBDCommand("Light status",
@@ -57,30 +92,25 @@ def light_clb(data):
     if(data.is_null): # Something to test data before using it..
         return
     data = bytes_to_int(data.messages[0].data[3:])
+    if(lightBeam.bitSelect & data):
+        if(lightBeam.isPressing is False):
+            lightBeam.isPressing = True
+            lightBeam.ModeNight()
+    elif(lightBeam.isPressing is True):
+        lightBeam.isPressing = False
+        lightBeam.ModeDay()
     return
-
-class Button:
-    def __init__(self, bitSelect, isPressing, button):
-        self.bitSelect  = bitSelect
-        self.isPressing = False
-        self.button     = button
-
-    def press(self):
-        keyboard.press(self.button)
-
-    def release(self):
-        keyboard.release(self.button)
 
 swCMD     = b"22833C"
 swHeader  = b'0007A5'
 swBytes   = 1
 swBase    = 0x62833C00
-# swVolUp   = Button((0x62833C80 ^ swBase), False, "H")
-# swVolDown = Button((0x62833C40 ^ swBase), False, "H")
-swVoice   = Button((0x62833C08 ^ swBase), False, "M")      # Voice Command
-swNext    = Button((0x62833C04 ^ swBase), False, "N")      # Next
-swPrev    = Button((0x62833C02 ^ swBase), False, "V")      # Previous
-swM       = Button((0x62833C01 ^ swBase), False, "return") # Enter
+# swVolUp   = OBDStruct((0x62833C80 ^ swBase), False, None)
+# swVolDown = OBDStruct((0x62833C40 ^ swBase), False, None)
+swVoice   = OBDStruct((0x62833C08 ^ swBase), False, "M")      # Voice Command
+swNext    = OBDStruct((0x62833C04 ^ swBase), False, "N")      # Next
+swPrev    = OBDStruct((0x62833C02 ^ swBase), False, "V")      # Previous
+swM       = OBDStruct((0x62833C01 ^ swBase), False, "return") # Enter
 
 swButtons   = [swVoice, swNext, swPrev, swM]
 
@@ -97,15 +127,13 @@ def sw_clb(data):
     if(data.is_null): # Something to test data before using it..
         return
     data = bytes_to_int(data.messages[0].data[3:])
-    if(data == 0): # no key pressed, jump out
-        return
-
     for c, swButton in enumerate(swButtons, 1):
         if(swButton.bitSelect & data):
             if(swButton.isPressing is False):
                 swButton.isPressing = True
                 swButton.press()
         elif(swButton.isPressing is True):
+            swButton.isPressing = False
             swButton.release()
     return
 
@@ -113,40 +141,40 @@ keyCMD     = b"228051"
 keyHeader  = b'0007A5'
 keyBytes   = 4
 keyBase    = 0x62805100000000
-key0       = Button((0x62805100000400 ^ keyBase), False, "0")           # Number 0
-key1       = Button((0x62805100000800 ^ keyBase), False, "1")           # Number 1
-key2       = Button((0x62805100001000 ^ keyBase), False, "2")           # Number 2
-key3       = Button((0x62805100002000 ^ keyBase), False, "3")           # Number 3
-key4       = Button((0x62805100004000 ^ keyBase), False, "4")           # Number 4
-key5       = Button((0x62805100008000 ^ keyBase), False, "5")           # Number 5
-key6       = Button((0x62805100000001 ^ keyBase), False, "6")           # Number 6
-key7       = Button((0x62805100000002 ^ keyBase), False, "7")           # Number 7
-key8       = Button((0x62805100000004 ^ keyBase), False, "8")           # Number 8
-key9       = Button((0x62805100000008 ^ keyBase), False, "9")           # Number 9
-keyStar    = Button((0x628051FFFFFFFF ^ keyBase), False, "P")           # Phone
-keyHash    = Button((0x628051FFFFFFFF ^ keyBase), False, "escape")      # Esc
-keyInfo    = Button((0x628051FFFFFFFF ^ keyBase), False, "left arrow")  # Hamburger Menu
-# keyReject  = Button((0x628051FFFFFFFF ^ keyBase), False, "a")
-keyLL      = Button((0x628051FFFFFFFF ^ keyBase), False, "left arrow")  # Hamburger Menu
-keyLR      = Button((0x628051FFFFFFFF ^ keyBase), False, "B")           # Play/Pause
-keyRL      = Button((0x628051FFFFFFFF ^ keyBase), False, "H")           # Home
-keyRR      = Button((0x628051FFFFFFFF ^ keyBase), False, "M")           # Voice Command
-keyTA      = Button((0x628051FFFFFFFF ^ keyBase), False, "H")           # Home
-keyMusic   = Button((0x628051FFFFFFFF ^ keyBase), False, "H")           # Home
-keyNext    = Button((0x628051FFFFFFFF ^ keyBase), False, "N")           # Next
-keyPrev    = Button((0x628051FFFFFFFF ^ keyBase), False, "V")           # Previous
-# keyLeft    = Button((0x628051FFFFFFFF ^ keyBase), False, "num 1")
-# keyRight   = Button((0x628051FFFFFFFF ^ keyBase), False, "num 2")
-keyUp      = Button((0x628051FFFFFFFF ^ keyBase), False, "num 1")       # Wheel Left
-keyDown    = Button((0x628051FFFFFFFF ^ keyBase), False, "num 2")       # Wheel Right
-keyOK      = Button((0x628051FFFFFFFF ^ keyBase), False, "return")      # Enter
-# keyCD      = Button((0x628051FFFFFFFF ^ keyBase), False, "H")
-# keyRadio   = Button((0x628051FFFFFFFF ^ keyBase), False, "H")
-keyAUX     = Button((0x62805110000000 ^ keyBase), False, "H")           # Home
-# keyPhone   = Button((0x628051FFFFFFFF ^ keyBase), False, "H")
-# keyMenu    = Button((0x628051FFFFFFFF ^ keyBase), False, "H")
-# keyVolUp   = Button((0x628051FFFFFFFF ^ keyBase), False, "H")
-# keyVolDown = Button((0x628051FFFFFFFF ^ keyBase), False, "H")
+key0       = OBDStruct((0x62805100000400 ^ keyBase), False, "0")           # Number 0
+key1       = OBDStruct((0x62805100000800 ^ keyBase), False, "1")           # Number 1
+key2       = OBDStruct((0x62805100001000 ^ keyBase), False, "2")           # Number 2
+key3       = OBDStruct((0x62805100002000 ^ keyBase), False, "3")           # Number 3
+key4       = OBDStruct((0x62805100004000 ^ keyBase), False, "4")           # Number 4
+key5       = OBDStruct((0x62805100008000 ^ keyBase), False, "5")           # Number 5
+key6       = OBDStruct((0x62805100000001 ^ keyBase), False, "6")           # Number 6
+key7       = OBDStruct((0x62805100000002 ^ keyBase), False, "7")           # Number 7
+key8       = OBDStruct((0x62805100000004 ^ keyBase), False, "8")           # Number 8
+key9       = OBDStruct((0x62805100000008 ^ keyBase), False, "9")           # Number 9
+keyStar    = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "P")           # Phone
+keyHash    = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "escape")      # Esc
+keyInfo    = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "left arrow")  # Hamburger Menu
+# keyReject  = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, None)
+keyLL      = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "left arrow")  # Hamburger Menu
+keyLR      = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "B")           # Play/Pause
+keyRL      = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "H")           # Home
+keyRR      = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "M")           # Voice Command
+keyTA      = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "H")           # Home
+keyMusic   = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "H")           # Home
+keyNext    = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "N")           # Next
+keyPrev    = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "V")           # Previous
+# keyLeft    = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "num 1")
+# keyRight   = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "num 2")
+keyUp      = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "num 1")       # Wheel Left
+keyDown    = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "num 2")       # Wheel Right
+keyOK      = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, "return")      # Enter
+# keyCD      = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, None)
+# keyRadio   = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, None)
+keyAUX     = OBDStruct((0x62805110000000 ^ keyBase), False, "H")           # Home
+# keyPhone   = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, None)
+# keyMenu    = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, None)
+# keyVolUp   = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, None)
+# keyVolDown = OBDStruct((0x628051FFFFFFFF ^ keyBase), False, None)
 
 keyButtons  = [key0, key1, key2, key3, key4, key5, key6, key7, key8, key9,
                keyStar, keyHash, keyInfo, keyLL, keyLR, keyRL, keyRR, keyTA,
@@ -165,15 +193,13 @@ def key_clb(data):
     if(data.is_null): # Something to test data before using it..
         return
     data = bytes_to_int(data.messages[0].data[3:])
-    if(data == 0): # no key pressed, jump out
-        return
-
     for c, keyButton in enumerate(keyButtons, 1):
         if(keyButton.bitSelect & data):
             if(keyButton.isPressing is False):
                 keyButton.isPressing = True
                 keyButton.press()
         elif(keyButton.isPressing is True):
+            swButton.isPressing = False
             keyButton.release()
     return
 
