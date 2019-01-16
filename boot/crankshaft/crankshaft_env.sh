@@ -118,7 +118,7 @@ WIFI2_SSID="OnePlus 3T Ruben"
 WIFI2_PSK="1+3TRuben"
 
 # Force recreate wpa_supplicant.conf during boot after wifi credentials have changed by user (default 0 | update 1)
-WIFI_UPDATE_CONFIG=0
+WIFI_UPDATE_CONFIG=1
 
 # Hotspot (if enabled the wifi client is disabled and a hotspot is opened)
 # Hotspot has now a default password (1234567890) -> changeable in /etc/hostapd/hostapd.conf if really needed!
