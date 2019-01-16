@@ -14,15 +14,50 @@ from obd.protocols import ECU
 from obd.utils import bytes_to_int
 import obd.decoders as d
 
-# # 223B541 response: 623B5400000000
-# REV_GEAR	= 7 # 623B5400010000
+revCMD      = b"22833C"
+revHeader   = b'0007A5' # ?? need to check
+revBytes    = 2
+revBase     = 0x623B540000
+revGear     = (0x623B540001 ^ revBase)
 
-# # 2271511 response: 62715100000000
-# LIGHT		= 12 # 62715100080000
-# LIGHT_1		= 11 # 62715100100000
-# LIGHT_2		= 9  # 62715100400000
+rev = OBDCommand("Reverse Gear",
+               "Decode Reverse Gear Command",
+               revCMD,
+               (3 + revBytes),
+               d.drop,
+               ECU.ALL,
+               True,
+               revHeader)
 
+def rev_clb(data):
+    if(data.is_null): # Something to test data before using it..
+        return
+    data = bytes_to_int(data.messages[0].data[3:])
+    return
+
+lightCMD    = b"227151"
+lightHeader = b'0007A5' # ?? need to check
+lightBytes  = 2
+lightBase   = 0x6271510000
+lightBeam   = (0x6271510008 ^ lightBase)
+lightBeam1  = (0x6271510010 ^ lightBase)
+lightBeam2  = (0x6271510040 ^ lightBase)
 # HAND_BRAKE  = 0
+
+light = OBDCommand("Light status",
+               "Decode Light status Command",
+               lightCMD,
+               (3 + lightBytes),
+               d.drop,
+               ECU.ALL,
+               True,
+               lightHeader)
+
+def light_clb(data):
+    if(data.is_null): # Something to test data before using it..
+        return
+    data = bytes_to_int(data.messages[0].data[3:])
+    return
 
 class Button:
     def __init__(self, bitSelect, isPressing, button):
@@ -36,7 +71,6 @@ class Button:
     def release(self):
         keyboard.release(self.button)
 
-# 22833C1 response: 62833C00
 swCMD     = b"22833C"
 swHeader  = b'0007A5'
 swBytes   = 1
@@ -75,7 +109,6 @@ def sw_clb(data):
             swButton.release()
     return
 
-# 2280511 response: 62805100000000
 keyCMD     = b"228051"
 keyHeader  = b'0007A5'
 keyBytes   = 4
@@ -148,10 +181,14 @@ def key_clb(data):
 
 connection = obd.OBD("COM9", protocol = "B")
 
+connection.supported_commands.add(rev)
+connection.supported_commands.add(light)
 connection.supported_commands.add(sw)
 connection.supported_commands.add(key)
 
 while(True):
+    rev_clb(connection.query(rev))
+    light_clb(connection.query(light))
     sw_clb(connection.query(sw))
     key_clb(connection.query(key))
     # time.sleep(0.01)
